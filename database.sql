@@ -107,3 +107,82 @@ CREATE TABLE IF NOT EXISTS `settings` (
     `updated_at` datetime NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Egg Store Administrative Workflow Tables
+
+-- 1. Egg Types (Small, Medium, Large, Organic, etc.)
+CREATE TABLE IF NOT EXISTS `egg_types` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `description` text,
+    `low_stock_threshold` int(11) NOT NULL DEFAULT 100,
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 2. Stock Batches (Stock Intake)
+CREATE TABLE IF NOT EXISTS `stock_batches` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `batch_id` varchar(50) NOT NULL, -- Supplier Batch ID
+    `egg_type_id` int(11) unsigned NOT NULL,
+    `quantity_added` int(11) NOT NULL,
+    `quantity_remaining` int(11) NOT NULL,
+    `laid_date` date NOT NULL,
+    `expiry_date` date NOT NULL,
+    `supplier_name` varchar(255),
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `batch_id` (`batch_id`),
+    KEY `egg_type_id` (`egg_type_id`),
+    CONSTRAINT `stock_batches_egg_type_id_foreign` FOREIGN KEY (`egg_type_id`) REFERENCES `egg_types` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 3. Orders (Order Fulfillment)
+CREATE TABLE IF NOT EXISTS `orders` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` int(11) unsigned NOT NULL,
+    `total_amount` decimal(10,2) NOT NULL,
+    `status` enum('Pending', 'Approved', 'Out for Delivery', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Pending',
+    `created_at` datetime NOT NULL,
+    `updated_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `user_id` (`user_id`),
+    CONSTRAINT `orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 4. Order Items
+CREATE TABLE IF NOT EXISTS `order_items` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `order_id` int(11) unsigned NOT NULL,
+    `egg_type_id` int(11) unsigned NOT NULL,
+    `quantity` int(11) NOT NULL,
+    `price_at_order` decimal(10,2) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `order_id` (`order_id`),
+    KEY `egg_type_id` (`egg_type_id`),
+    CONSTRAINT `order_items_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `order_items_egg_type_id_foreign` FOREIGN KEY (`egg_type_id`) REFERENCES `egg_types` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 5. Losses (Reconciliation: Breakage or Expiration)
+CREATE TABLE IF NOT EXISTS `inventory_losses` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `stock_batch_id` int(11) unsigned NOT NULL,
+    `quantity_lost` int(11) NOT NULL,
+    `reason` enum('Breakage', 'Expiration', 'Other') NOT NULL,
+    `notes` text,
+    `created_at` datetime NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `stock_batch_id` (`stock_batch_id`),
+    CONSTRAINT `inventory_losses_stock_batch_id_foreign` FOREIGN KEY (`stock_batch_id`) REFERENCES `stock_batches` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Seed initial egg types
+INSERT INTO `egg_types` (`name`, `description`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES
+('Small', 'Small size eggs, approx 45g-53g', 100, NOW(), NOW()),
+('Medium', 'Medium size eggs, approx 53g-63g', 150, NOW(), NOW()),
+('Large', 'Large size eggs, approx 63g-73g', 200, NOW(), NOW()),
+('Organic', 'Free-range organic eggs', 50, NOW(), NOW());
+
