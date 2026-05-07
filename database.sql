@@ -1,7 +1,28 @@
+-- Egg Store Database Setup Script
+-- This script creates the database and all required tables.
+
 CREATE DATABASE IF NOT EXISTS egg_store;
 USE egg_store;
 
-CREATE TABLE IF NOT EXISTS `users` (
+-- --------------------------------------------------------
+-- 1. AUTHENTICATION TABLES (CodeIgniter Shield)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `auth_permissions_users`;
+DROP TABLE IF EXISTS `auth_groups_users`;
+DROP TABLE IF EXISTS `auth_remember_tokens`;
+DROP TABLE IF EXISTS `auth_token_logins`;
+DROP TABLE IF EXISTS `auth_logins`;
+DROP TABLE IF EXISTS `auth_identities`;
+DROP TABLE IF EXISTS `inventory_losses`;
+DROP TABLE IF EXISTS `order_items`;
+DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `stock_batches`;
+DROP TABLE IF EXISTS `egg_types`;
+DROP TABLE IF EXISTS `settings`;
+DROP TABLE IF EXISTS `users`;
+
+CREATE TABLE `users` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(30) DEFAULT NULL,
     `status` varchar(255) DEFAULT NULL,
@@ -15,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_identities` (
+CREATE TABLE `auth_identities` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(11) unsigned NOT NULL,
     `type` varchar(255) NOT NULL,
@@ -34,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `auth_identities` (
     CONSTRAINT `auth_identities_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_logins` (
+CREATE TABLE `auth_logins` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `ip_address` varchar(255) NOT NULL,
     `user_agent` varchar(255) DEFAULT NULL,
@@ -48,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `auth_logins` (
     KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_token_logins` (
+CREATE TABLE `auth_token_logins` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `ip_address` varchar(255) NOT NULL,
     `user_agent` varchar(255) DEFAULT NULL,
@@ -62,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `auth_token_logins` (
     KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_remember_tokens` (
+CREATE TABLE `auth_remember_tokens` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `selector` varchar(255) NOT NULL,
     `hashedValidator` varchar(255) NOT NULL,
@@ -76,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `auth_remember_tokens` (
     CONSTRAINT `auth_remember_tokens_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_groups_users` (
+CREATE TABLE `auth_groups_users` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(11) unsigned NOT NULL,
     `group` varchar(255) NOT NULL,
@@ -86,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `auth_groups_users` (
     CONSTRAINT `auth_groups_users_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `auth_permissions_users` (
+CREATE TABLE `auth_permissions_users` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(11) unsigned NOT NULL,
     `permission` varchar(255) NOT NULL,
@@ -96,7 +117,11 @@ CREATE TABLE IF NOT EXISTS `auth_permissions_users` (
     CONSTRAINT `auth_permissions_users_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `settings` (
+-- --------------------------------------------------------
+-- 2. SYSTEM SETTINGS
+-- --------------------------------------------------------
+
+CREATE TABLE `settings` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `class` varchar(255) NOT NULL,
     `key` varchar(255) NOT NULL,
@@ -108,10 +133,11 @@ CREATE TABLE IF NOT EXISTS `settings` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Egg Store Administrative Workflow Tables
+-- --------------------------------------------------------
+-- 3. EGG STORE WORKFLOW TABLES
+-- --------------------------------------------------------
 
--- 1. Egg Types (Small, Medium, Large, Organic, etc.)
-CREATE TABLE IF NOT EXISTS `egg_types` (
+CREATE TABLE `egg_types` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,
     `description` text,
@@ -121,10 +147,9 @@ CREATE TABLE IF NOT EXISTS `egg_types` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- 2. Stock Batches (Stock Intake)
-CREATE TABLE IF NOT EXISTS `stock_batches` (
+CREATE TABLE `stock_batches` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `batch_id` varchar(50) NOT NULL, -- Supplier Batch ID
+    `batch_id` varchar(50) NOT NULL,
     `egg_type_id` int(11) unsigned NOT NULL,
     `quantity_added` int(11) NOT NULL,
     `quantity_remaining` int(11) NOT NULL,
@@ -139,8 +164,7 @@ CREATE TABLE IF NOT EXISTS `stock_batches` (
     CONSTRAINT `stock_batches_egg_type_id_foreign` FOREIGN KEY (`egg_type_id`) REFERENCES `egg_types` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- 3. Orders (Order Fulfillment)
-CREATE TABLE IF NOT EXISTS `orders` (
+CREATE TABLE `orders` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(11) unsigned NOT NULL,
     `total_amount` decimal(10,2) NOT NULL,
@@ -152,8 +176,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     CONSTRAINT `orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- 4. Order Items
-CREATE TABLE IF NOT EXISTS `order_items` (
+CREATE TABLE `order_items` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `order_id` int(11) unsigned NOT NULL,
     `egg_type_id` int(11) unsigned NOT NULL,
@@ -166,8 +189,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
     CONSTRAINT `order_items_egg_type_id_foreign` FOREIGN KEY (`egg_type_id`) REFERENCES `egg_types` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- 5. Losses (Reconciliation: Breakage or Expiration)
-CREATE TABLE IF NOT EXISTS `inventory_losses` (
+CREATE TABLE `inventory_losses` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `stock_batch_id` int(11) unsigned NOT NULL,
     `quantity_lost` int(11) NOT NULL,
@@ -179,10 +201,16 @@ CREATE TABLE IF NOT EXISTS `inventory_losses` (
     CONSTRAINT `inventory_losses_stock_batch_id_foreign` FOREIGN KEY (`stock_batch_id`) REFERENCES `stock_batches` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Seed initial egg types
+-- --------------------------------------------------------
+-- 4. INITIAL SEED DATA
+-- -------------------------------------------------------- Seed initial egg types
 INSERT INTO `egg_types` (`name`, `description`, `low_stock_threshold`, `created_at`, `updated_at`) VALUES
 ('Small', 'Small size eggs, approx 45g-53g', 100, NOW(), NOW()),
 ('Medium', 'Medium size eggs, approx 53g-63g', 150, NOW(), NOW()),
 ('Large', 'Large size eggs, approx 63g-73g', 200, NOW(), NOW()),
+('XL', 'Extra Large size eggs, approx 73g+', 50, NOW(), NOW()),
+('Free-range', 'Eggs from free-range chickens', 100, NOW(), NOW()),
+('Brown', 'Standard brown shell eggs', 200, NOW(), NOW()),
+('White', 'Standard white shell eggs', 100, NOW(), NOW()),
+('Salted', 'Processed salted eggs', 50, NOW(), NOW()),
 ('Organic', 'Free-range organic eggs', 50, NOW(), NOW());
-

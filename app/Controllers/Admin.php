@@ -58,7 +58,61 @@ class Admin extends BaseController
                                            ->findAll();
         
         $data['nearExpiry'] = $stockBatchModel->getNearExpiry();
+        $data['eggTypes'] = $eggTypeModel->findAll();
 
         return view('admin/inventory', $data);
+    }
+
+    public function logWaste()
+    {
+        $stockBatchId = $this->request->getPost('stock_batch_id');
+        $quantityLost = $this->request->getPost('quantity_lost');
+        $reason = $this->request->getPost('reason');
+
+        $stockBatchModel = new StockBatchModel();
+        $batch = $stockBatchModel->find($stockBatchId);
+
+        if (!$batch || $batch['quantity_remaining'] < $quantityLost) {
+            return redirect()->back()->with('error', 'Invalid batch or quantity.');
+        }
+
+        // Update batch remaining quantity
+        $stockBatchModel->update($stockBatchId, [
+            'quantity_remaining' => $batch['quantity_remaining'] - $quantityLost
+        ]);
+
+        // Log to losses table
+        $db = \Config\Database::connect();
+        $db->table('inventory_losses')->insert([
+            'stock_batch_id' => $stockBatchId,
+            'quantity_lost' => $quantityLost,
+            'reason' => $reason,
+            'notes' => $this->request->getPost('notes'),
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        return redirect()->back()->with('message', 'Waste logged successfully.');
+    }
+
+    public function orders()
+    {
+        $orderModel = new \App\Models\OrderModel();
+        $data['orders'] = $orderModel->select('orders.*, users.username')
+                                     ->join('users', 'users.id = orders.user_id')
+                                     ->orderBy('orders.created_at', 'DESC')
+                                     ->findAll();
+
+        return view('admin/orders', $data);
+    }
+
+    public function updateOrderStatus()
+    {
+        $orderId = $this->request->getPost('order_id');
+        $status = $this->request->getPost('status');
+
+        $orderModel = new \App\Models\OrderModel();
+        $orderModel->update($orderId, ['status' => $status]);
+
+        return redirect()->back()->with('message', 'Order status updated to ' . $status);
     }
 }

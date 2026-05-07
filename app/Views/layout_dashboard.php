@@ -35,6 +35,9 @@
                 <a href="/admin/inventory" class="<?= url_is('admin/inventory') ? 'active' : '' ?>">
                     <i class="bi bi-clipboard-data me-2"></i> Inventory Monitoring
                 </a>
+                <a href="/admin/orders" class="<?= url_is('admin/orders*') ? 'active' : '' ?>">
+                    <i class="bi bi-cart-check me-2"></i> Order Management
+                </a>
                 <a href="/admin/users" class="<?= url_is('admin/users*') ? 'active' : '' ?>">
                     <i class="bi bi-people me-2"></i> User Management
                 </a>
@@ -52,6 +55,18 @@
                     <span class="navbar-text">
                         Welcome back, <strong><?= auth()->user()->username ?></strong>
                     </span>
+                    <div class="ms-auto d-flex align-items-center">
+                        <?php if (isset($expiryAlerts) && $expiryAlerts > 0): ?>
+                            <a href="/admin/inventory" class="text-danger me-3 position-relative">
+                                <i class="bi bi-bell-fill fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                    <?= $expiryAlerts ?>
+                                </span>
+                            </a>
+                        <?php else: ?>
+                            <i class="bi bi-bell text-muted me-3 fs-5"></i>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </nav>
 

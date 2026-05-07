@@ -13,6 +13,11 @@ $routes->group('admin', ['filter' => 'session'], function($routes) {
     $routes->get('stock-intake', 'Admin::stockIntake');
     $routes->post('add-stock', 'Admin::addStock');
     $routes->get('inventory', 'Admin::inventory');
+    $routes->post('log-waste', 'Admin::logWaste');
+    
+    // Orders
+    $routes->get('orders', 'Admin::orders');
+    $routes->post('update-order-status', 'Admin::updateOrderStatus');
     
     // User Management
     $routes->get('users', 'UserController::index');

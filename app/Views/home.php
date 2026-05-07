@@ -4,6 +4,41 @@
 
 <?= $this->section('content') ?>
 
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Total Dozens in Stock</h6>
+                <h2 class="fw-bold mb-0"><?= number_format($totalDozens) ?></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Orders Pending Today</h6>
+                <h2 class="fw-bold mb-0"><?= number_format($pendingOrders) ?></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Revenue (This Month)</h6>
+                <h2 class="fw-bold mb-0">$<?= number_format($monthlyRevenue, 2) ?></h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-danger text-white">
+            <div class="card-body">
+                <h6 class="text-uppercase small">Expiring (48h)</h6>
+                <h2 class="fw-bold mb-0"><?= number_format($expiryAlerts) ?></h2>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="p-5 mb-4 bg-white rounded-3 shadow-sm border">

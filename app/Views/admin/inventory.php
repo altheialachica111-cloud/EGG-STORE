@@ -68,6 +68,49 @@
                                             <span class="badge bg-success">Fresh</span>
                                         <?php endif ?>
                                     </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#wasteModal<?= $batch['id'] ?>">
+                                            <i class="bi bi-trash"></i> Log Waste
+                                        </button>
+
+                                        <!-- Waste Modal -->
+                                        <div class="modal fade" id="wasteModal<?= $batch['id'] ?>" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Log Waste for Batch: <?= $batch['batch_id'] ?></h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="/admin/log-waste" method="post">
+                                                        <?= csrf_field() ?>
+                                                        <input type="hidden" name="stock_batch_id" value="<?= $batch['id'] ?>">
+                                                        <div class="modal-body text-start">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Quantity Lost (Eggs)</label>
+                                                                <input type="number" name="quantity_lost" class="form-control" max="<?= $batch['quantity_remaining'] ?>" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Reason</label>
+                                                                <select name="reason" class="form-select" required>
+                                                                    <option value="Breakage">Breakage</option>
+                                                                    <option value="Expiration">Expiration</option>
+                                                                    <option value="Other">Other</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Notes</label>
+                                                                <textarea name="notes" class="form-control" rows="2"></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger">Confirm Waste Log</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach ?>
                         <?php endif ?>
