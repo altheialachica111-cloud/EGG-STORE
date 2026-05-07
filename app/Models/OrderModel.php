@@ -12,7 +12,10 @@ class OrderModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['user_id', 'total_amount', 'status'];
+    protected $allowedFields    = [
+        'user_id', 'total_amount', 'status', 'payment_method', 
+        'payment_status', 'quality_checked', 'rider_name', 'tracking_link'
+    ];
 
     protected $useTimestamps = true;
     protected $dateFormat    = 'datetime';

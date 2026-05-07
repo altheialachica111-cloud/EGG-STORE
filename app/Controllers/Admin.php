@@ -97,10 +97,32 @@ class Admin extends BaseController
     public function orders()
     {
         $orderModel = new \App\Models\OrderModel();
-        $data['orders'] = $orderModel->select('orders.*, users.username')
-                                     ->join('users', 'users.id = orders.user_id')
-                                     ->orderBy('orders.created_at', 'DESC')
-                                     ->findAll();
+        
+        $status = $this->request->getGet('status');
+        $payment_status = $this->request->getGet('payment_status');
+        $date = $this->request->getGet('date');
+
+        $query = $orderModel->select('orders.*, users.username')
+                            ->join('users', 'users.id = orders.user_id');
+
+        if ($status) {
+            $query->where('orders.status', $status);
+        }
+        if ($payment_status) {
+            $query->where('orders.payment_status', $payment_status);
+        }
+        if ($date) {
+            $query->where('DATE(orders.created_at)', $date);
+        }
+
+        $data['orders'] = $query->orderBy('orders.created_at', 'DESC')->findAll();
+        
+        // Pass current filters back to view
+        $data['filters'] = [
+            'status' => $status,
+            'payment_status' => $payment_status,
+            'date' => $date
+        ];
 
         return view('admin/orders', $data);
     }
@@ -111,8 +133,55 @@ class Admin extends BaseController
         $status = $this->request->getPost('status');
 
         $orderModel = new \App\Models\OrderModel();
-        $orderModel->update($orderId, ['status' => $status]);
+        $db = \Config\Database::connect();
+        
+        $updateData = ['status' => $status];
 
-        return redirect()->back()->with('message', 'Order status updated to ' . $status);
+        // 1. Logic for Picking (Suggest FIFO Batch)
+        if ($status == 'Picking') {
+            $items = $db->table('order_items')->where('order_id', $orderId)->get()->getResultArray();
+            foreach ($items as $item) {
+                // Find oldest batch with stock for this egg type
+                $batch = $db->table('stock_batches')
+                            ->where('egg_type_id', $item['egg_type_id'])
+                            ->where('quantity_remaining >', 0)
+                            ->orderBy('laid_date', 'ASC')
+                            ->get()->getRowArray();
+                
+                if ($batch) {
+                    $db->table('order_items')->where('id', $item['id'])->update(['suggested_batch_id' => $batch['id']]);
+                }
+            }
+        }
+
+        // 2. Logic for Packing (Quality Check)
+        if ($status == 'Packing') {
+            $updateData['quality_checked'] = 1;
+        }
+
+        // 3. Logic for Delivery Assignment
+        if ($status == 'Out for Delivery') {
+            $updateData['rider_name'] = $this->request->getPost('rider_name') ?: 'Standard Rider';
+            $updateData['tracking_link'] = 'http://track-egg.com/' . uniqid();
+            // Simulation: Send Email/SMS
+            // mail($customer_email, "Order Out for Delivery", "Track here: " . $updateData['tracking_link']);
+        }
+
+        // 4. Logic for Completion (Deduct Stock)
+        if ($status == 'Completed') {
+            $items = $db->table('order_items')->where('order_id', $orderId)->get()->getResultArray();
+            foreach ($items as $item) {
+                if ($item['suggested_batch_id']) {
+                    $db->table('stock_batches')
+                       ->where('id', $item['suggested_batch_id'])
+                       ->decrement('quantity_remaining', $item['quantity']);
+                }
+            }
+            $updateData['payment_status'] = 'Paid';
+        }
+
+        $orderModel->update($orderId, $updateData);
+
+        return redirect()->back()->with('message', 'Order stage updated to ' . $status);
     }
 }
