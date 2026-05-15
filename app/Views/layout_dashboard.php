@@ -29,11 +29,14 @@
                 <a href="/" class="<?= url_is('/') ? 'active' : '' ?>">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
+                <a href="/store" class="<?= url_is('store*') ? 'active' : '' ?>">
+                    <i class="bi bi-shop me-2"></i> Shop Eggs
+                </a>
                 <a href="/admin/stock-intake" class="<?= url_is('admin/stock-intake') ? 'active' : '' ?>">
                     <i class="bi bi-box-seam me-2"></i> Stock Intake
                 </a>
                 <a href="/admin/inventory" class="<?= url_is('admin/inventory') ? 'active' : '' ?>">
-                    <i class="bi bi-clipboard-data me-2"></i> Inventory Monitoring
+                    <i class="bi bi-clipboard-data me-2"></i> Inventory
                 </a>
                 <a href="/admin/orders" class="<?= url_is('admin/orders*') ? 'active' : '' ?>">
                     <i class="bi bi-cart-check me-2"></i> Order Management

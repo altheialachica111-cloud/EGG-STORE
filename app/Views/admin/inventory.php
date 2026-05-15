@@ -1,13 +1,13 @@
 <?= $this->extend('layout_dashboard') ?>
 
-<?= $this->section('title') ?>Inventory Monitoring<?= $this->endSection() ?>
+<?= $this->section('title') ?>Inventory<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0 fw-bold">Inventory Monitoring</h2>
+            <h2 class="mb-0 fw-bold">Inventory</h2>
             <a href="/admin/stock-intake" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Add Stock</a>
         </div>
 
@@ -34,6 +34,7 @@
                             <th>Laid Date</th>
                             <th>Expiry Date</th>
                             <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>

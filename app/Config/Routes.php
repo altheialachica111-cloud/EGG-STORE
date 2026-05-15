@@ -27,3 +27,14 @@ $routes->group('admin', ['filter' => 'session'], function($routes) {
     $routes->post('users/update/(:num)', 'UserController::update/$1');
     $routes->get('users/delete/(:num)', 'UserController::delete/$1');
 });
+
+// Store / Checkout Routes
+$routes->group('store', ['filter' => 'session'], function($routes) {
+    $routes->get('/', 'CheckoutController::index');
+    $routes->post('add-to-cart', 'CheckoutController::addToCart');
+    $routes->get('cart', 'CheckoutController::cart');
+    $routes->post('clear-cart', 'CheckoutController::clearCart');
+    $routes->get('checkout', 'CheckoutController::checkout');
+    $routes->post('process', 'CheckoutController::process');
+    $routes->get('success', 'CheckoutController::success');
+});

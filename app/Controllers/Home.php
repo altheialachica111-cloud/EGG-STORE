@@ -31,6 +31,22 @@ class Home extends BaseController
                                    ->where('quantity_remaining >', 0)
                                    ->countAllResults();
 
+        // 5. Low Stock Alerts (Sum of stock vs threshold)
+        $data['lowStockItems'] = $db->table('egg_types')
+                                    ->select('egg_types.name, egg_types.low_stock_threshold, SUM(stock_batches.quantity_remaining) as current_stock')
+                                    ->join('stock_batches', 'stock_batches.egg_type_id = egg_types.id', 'left')
+                                    ->groupBy('egg_types.id')
+                                    ->having('current_stock < egg_types.low_stock_threshold OR current_stock IS NULL')
+                                    ->get()->getResultArray();
+
+        // 6. Recent Activity (Latest 5 orders)
+        $data['recentOrders'] = $db->table('orders')
+                                   ->select('orders.*, users.username')
+                                   ->join('users', 'users.id = orders.user_id')
+                                   ->orderBy('orders.created_at', 'DESC')
+                                   ->limit(5)
+                                   ->get()->getResultArray();
+
         return view('home', $data);
     }
 }
